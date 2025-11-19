@@ -5,9 +5,7 @@
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
 
-
-def pregunta_01():
-    """
+"""
     La información requerida para este laboratio esta almacenada en el
     archivo "files/input.zip" ubicado en la carpeta raíz.
     Descomprima este archivo.
@@ -71,3 +69,67 @@ def pregunta_01():
 
 
     """
+
+import os
+import zipfile
+import pandas as pd
+
+
+def pregunta_01():
+
+    # 1 Descomprimir archivo zip
+   
+    input_zip_path = "files/input.zip"
+    extract_path = "files/input"
+
+    if not os.path.exists(extract_path):
+        with zipfile.ZipFile(input_zip_path, "r") as zip_ref:
+            zip_ref.extractall("files/")
+
+    # 2 leer archivos y crear DataFrames
+
+    def load_split(split_name):
+        base_path = os.path.join("files/input", split_name)
+
+        rows = []
+
+        for sentiment in ["negative", "positive", "neutral"]:
+            sentiment_path = os.path.join(base_path, sentiment)
+
+            if not os.path.exists(sentiment_path):
+                continue
+
+            for filename in os.listdir(sentiment_path):
+                if filename.endswith(".txt"):
+                    file_path = os.path.join(sentiment_path, filename)
+
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        text = f.read().strip()
+
+                    rows.append({
+                        "phrase": text,
+                        "target": sentiment
+                    })
+
+        return pd.DataFrame(rows)
+
+
+    # 3 Cargar train y test
+
+    train_df = load_split("train")
+    test_df = load_split("test")
+
+
+    # 4 Crear carpeta de salida (output)
+
+    output_path = "files/output"
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+ 
+    # 5 Guardar CSVs
+
+    train_df.to_csv(os.path.join(output_path, "train_dataset.csv"), index=False)
+    test_df.to_csv(os.path.join(output_path, "test_dataset.csv"), index=False)
+    
+    return train_df, test_df
